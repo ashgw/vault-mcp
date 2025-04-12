@@ -1,12 +1,36 @@
+/**
+ * HashiCorp Vault MCP Server Implementation
+ *
+ * This server provides a Model Context Protocol (MCP) interface to HashiCorp Vault,
+ * allowing LLMs to interact with Vault's secret management and policy features.
+ *
+ * @module VaultMcpServer
+ */
+
 import vault from "node-vault";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
+/**
+ * VaultMcpServer class provides MCP interface to HashiCorp Vault
+ *
+ * Features:
+ * - Secret management (create, read, delete)
+ * - Policy management
+ * - Resource listing
+ * - Policy generation helpers
+ */
 class VaultMcpServer {
   private server: McpServer;
   private vaultClient: any;
 
+  /**
+   * Creates a new VaultMcpServer instance
+   *
+   * @param vaultAddress - The URL of the Vault server
+   * @param vaultToken - Authentication token for Vault access
+   */
   constructor(vaultAddress: string, vaultToken: string) {
     this.server = new McpServer({
       name: "vault-mcp",
@@ -24,6 +48,17 @@ class VaultMcpServer {
     this.registerPrompts();
   }
 
+  /**
+   * Registers all available tools with the MCP server
+   *
+   * Tools:
+   * - secret/create: Creates or updates a secret at specified path
+   * - secret/read: Retrieves a secret from specified path
+   * - secret/delete: Removes a secret (soft delete)
+   * - policy/create: Creates a new Vault policy
+   *
+   * @private
+   */
   private registerTools() {
     // Exposes write API from Vault KV v2 as an MCP tool
     this.server.tool(
@@ -106,6 +141,15 @@ class VaultMcpServer {
     );
   }
 
+  /**
+   * Registers all available resources with the MCP server
+   *
+   * Resources:
+   * - vault://secrets: Lists all secret paths in the KV store
+   * - vault://policies: Lists all available policies
+   *
+   * @private
+   */
   private registerResources() {
     // Lists top-level KV secret paths from Vault metadata
     this.server.resource("vault-secrets", "vault://secrets", async () => {
@@ -145,6 +189,14 @@ class VaultMcpServer {
     });
   }
 
+  /**
+   * Registers all available prompts with the MCP server
+   *
+   * Prompts:
+   * - generate-policy: Creates a policy object from path and capabilities
+   *
+   * @private
+   */
   private registerPrompts() {
     // Generates a Vault policy object from comma-separated capability string.
     // Returned as MCP `prompt` format (messages[]) instead of `content[]`.
@@ -180,6 +232,11 @@ class VaultMcpServer {
     );
   }
 
+  /**
+   * Starts the MCP server using stdio transport
+   *
+   * @public
+   */
   public async start() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
@@ -188,3 +245,35 @@ class VaultMcpServer {
 }
 
 export default VaultMcpServer;
+
+/**
+ * Usage Example:
+ *
+ * ```typescript
+ * const server = new VaultMcpServer(
+ *   "http://vault.example.com:8200",
+ *   "vault-token-here"
+ * );
+ * await server.start();
+ * ```
+ *
+ * Tool Usage:
+ * ```typescript
+ * // Create a secret
+ * await tool("secret/create", {
+ *   path: "my/secret",
+ *   data: { key: "value" }
+ * });
+ *
+ * // Read a secret
+ * await tool("secret/read", {
+ *   path: "my/secret"
+ * });
+ *
+ * // Create a policy
+ * await tool("policy/create", {
+ *   name: "read-only",
+ *   policy: 'path "secret/*" { capabilities = ["read", "list"] }'
+ * });
+ * ```
+ */

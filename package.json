@@ -15,9 +15,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts",
+    "build": "bun build src/index.ts --outfile dist/index.js",
     "format": "prettier --write .",
     "lint": "prettier --check ."
   },
