@@ -19,7 +19,6 @@ class VaultMcpServer {
       token: vaultToken,
     });
 
-    // Register MCP behaviors (required for schema discovery and routing)
     this.registerTools();
     this.registerResources();
     this.registerPrompts();
