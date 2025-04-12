@@ -79,7 +79,7 @@ class VaultMcpServer {
             },
           ],
         };
-      }
+      },
     );
 
     // Read a KV secret (raw vault response)
@@ -98,7 +98,7 @@ class VaultMcpServer {
             },
           ],
         };
-      }
+      },
     );
 
     // Soft-deletes a secret (versioned delete at KV v2 path)
@@ -117,7 +117,7 @@ class VaultMcpServer {
             },
           ],
         };
-      }
+      },
     );
 
     // Vault policy writer (policy = raw string, passed directly)
@@ -137,7 +137,7 @@ class VaultMcpServer {
             },
           ],
         };
-      }
+      },
     );
   }
 
@@ -228,7 +228,7 @@ class VaultMcpServer {
             },
           ],
         };
-      }
+      },
     );
   }
 
