@@ -77,19 +77,7 @@ Then pin point your client to wherever you set the server
 
 ### Docker Installation
 
-You can quickly run the server using the pre-built Docker image:
-
-```bash
-docker run -d \
-  --name vault-mcp \
-  -e VAULT_ADDR=http://your-vault-server:8200 \
-  -e VAULT_TOKEN=hvs.your-vault-token \
-  -e MCP_PORT=3000 \
-  -p 3000:3000 \
-  ashgw/vault-mcp:latest
-```
-
-Or build and run locally (after you clone ofc):
+Build and run locally (after you clone ofc):
 
 ```bash
 # Build the Docker image
@@ -102,7 +90,19 @@ docker run -d \
   -e VAULT_TOKEN=hvs.your-vault-token \
   -e MCP_PORT=3000 \
   -p 3000:3000 \
-  ashgw/vault-mcp
+  vault-mcp
+```
+
+Or, you can quickly run the server using the pre-built Docker image:
+
+```bash
+docker run -d \
+  --name vault-mcp \
+  -e VAULT_ADDR=http://your-vault-server:8200 \
+  -e VAULT_TOKEN=hvs.your-vault-token \
+  -e MCP_PORT=3000 \
+  -p 3000:3000 \
+  ashgw/vault-mcp:latest
 ```
 
 ### Environment Variables
@@ -240,4 +240,4 @@ await prompt("generate-policy", {
 
 ## License
 
-MIT
+[MIT](/LICENSE)
