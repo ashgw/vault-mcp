@@ -1,14 +1,11 @@
 import vault from "node-vault";
-import {
-  McpServer,
-  Tool,
-  Prompt
-  ResourceTemplate
-} from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { z } from "zod";
 
 class VaultMcpServer {
   private server: McpServer;
-  private vaultClient: any; // Will be properly typed with Vault client
+  private vaultClient: any;
 
   constructor(vaultAddress: string, vaultToken: string) {
     this.server = new McpServer({
@@ -17,7 +14,6 @@ class VaultMcpServer {
       description: "MCP Server for HashiCorp Vault secret management",
     });
 
-    // Initialize Vault client
     this.vaultClient = vault({
       endpoint: vaultAddress,
       token: vaultToken,
@@ -29,89 +25,157 @@ class VaultMcpServer {
   }
 
   private registerTools() {
-    // Secret management tools
-    this.server.registerTool(
-      new Tool("secret/create", async (params) => {
-        const { path, data } = params;
-        return await this.vaultClient.write(`secret/data/${path}`, { data });
-      })
-    );
-
-    this.server.registerTool(
-      new Tool("secret/read", async (params) => {
-        const { path } = params;
-        return await this.vaultClient.read(`secret/data/${path}`);
-      })
-    );
-
-    this.server.registerTool(
-      new Tool("secret/delete", async (params) => {
-        const { path } = params;
-        return await this.vaultClient.delete(`secret/data/${path}`);
-      })
-    );
-
-    // Policy management tools
-    this.server.registerTool(
-      new Tool("policy/create", async (params) => {
-        const { name, policy } = params;
-        return await this.vaultClient.sys.addPolicy({
-          name,
-          policy,
+    this.server.tool(
+      "secret/create",
+      {
+        path: z.string(),
+        data: z.record(z.any()),
+      },
+      async ({ path, data }) => {
+        const result = await this.vaultClient.write(`secret/data/${path}`, {
+          data,
         });
-      })
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Secret written at: ${path}\n${JSON.stringify(result, null, 2)}`,
+            },
+          ],
+        };
+      }
+    );
+
+    this.server.tool(
+      "secret/read",
+      {
+        path: z.string(),
+      },
+      async ({ path }) => {
+        const result = await this.vaultClient.read(`secret/data/${path}`);
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Secret read at: ${path}\n${JSON.stringify(result, null, 2)}`,
+            },
+          ],
+        };
+      }
+    );
+
+    this.server.tool(
+      "secret/delete",
+      {
+        path: z.string(),
+      },
+      async ({ path }) => {
+        const result = await this.vaultClient.delete(`secret/data/${path}`);
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Secret deleted at: ${path}\n${JSON.stringify(result, null, 2)}`,
+            },
+          ],
+        };
+      }
+    );
+
+    this.server.tool(
+      "policy/create",
+      {
+        name: z.string(),
+        policy: z.string(),
+      },
+      async ({ name, policy }) => {
+        const result = await this.vaultClient.sys.addPolicy({ name, policy });
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Policy '${name}' created.\n${JSON.stringify(result, null, 2)}`,
+            },
+          ],
+        };
+      }
     );
   }
 
   private registerResources() {
-    // Register secret paths as resources
-    this.server.registerResource(
-      new Resource(
-        "vault://secrets",
-        "secrets",
-        "List of secret paths in Vault",
-        async () => {
-          return await this.vaultClient.list("secret/metadata");
-        }
-      )
-    );
+    this.server.resource("vault-secrets", "vault://secrets", async () => {
+      try {
+        const result = await this.vaultClient.list("secret/metadata");
+        return {
+          contents: [
+            {
+              uri: "vault://secrets",
+              text: JSON.stringify(result.data.keys || []),
+            },
+          ],
+        };
+      } catch (err) {
+        return {
+          contents: [
+            {
+              uri: "vault://secrets",
+              text: "[]",
+            },
+          ],
+        };
+      }
+    });
 
-    // Register policies as resources
-    this.server.registerResource(
-      new Resource(
-        "vault://policies",
-        "policies",
-        "List of Vault policies",
-        async () => {
-          return await this.vaultClient.sys.policies();
-        }
-      )
-    );
+    this.server.resource("vault-policies", "vault://policies", async () => {
+      const result = await this.vaultClient.sys.listPolicies();
+      return {
+        contents: [
+          {
+            uri: "vault://policies",
+            text: JSON.stringify(result),
+          },
+        ],
+      };
+    });
   }
 
   private registerPrompts() {
-    // Register common secret management prompts
-    this.server.registerPrompt(
-      new Prompt(
-        "generate-policy",
-        "Generate a Vault policy for specific path and capabilities",
-        async (params) => {
-          const { path, capabilities } = params;
-          return {
-            path: {
-              [path]: {
-                capabilities: capabilities,
+    this.server.prompt(
+      "generate-policy",
+      {
+        path: z.string(),
+        capabilities: z.string(),
+      },
+      async ({ path, capabilities }) => {
+        const capArray = capabilities.split(",").map((c) => c.trim());
+
+        const policy = {
+          path: {
+            [path]: {
+              capabilities: capArray,
+            },
+          },
+        };
+
+        return {
+          messages: [
+            {
+              role: "user",
+              content: {
+                type: "text",
+                text: JSON.stringify(policy, null, 2),
               },
             },
-          };
-        }
-      )
+          ],
+        };
+      }
     );
   }
 
-  public async start(port: number = 3000) {
-    await this.server.start(port);
-    console.log(`Vault MCP Server running on port ${port}`);
+  public async start() {
+    const transport = new StdioServerTransport();
+    await this.server.connect(transport);
+    console.error("Vault MCP Server running via stdio");
   }
 }
 
