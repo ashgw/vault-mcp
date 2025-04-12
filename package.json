@@ -1,0 +1,31 @@
+{
+  "name": "hashicorp-vault-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for HCP Vault Secrets retrieval",
+  "license": "MIT",
+  "author": "@ashgw",
+  "homepage": "https://ashgw/hashicorp-vault-mcp",
+  "bugs": "https://github.co/ashgw/hashicorp-vault-mcp/issues",
+  "type": "module",
+  "main": "lib/main.js",
+  "bin": {
+    "hashicorp-vault-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun build src/index.ts --target=node --outdir=dist --format=esm",
+    "format": "prettier --write .",
+    "lint": "prettier --check ."
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "0.5.0",
+    "@aws-sdk/client-bedrock-agent-runtime": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "prettier": "^3.1.1",
+    "typescript": "^5.6.2"
+  }
+}
