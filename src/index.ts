@@ -1,212 +1,191 @@
-#!/usr/bin/env node
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import vault from "node-vault";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-  Tool,
-} from "@modelcontextprotocol/sdk/types.js";
-import {
-  BedrockAgentRuntimeClient,
-  RetrieveCommand,
-  RetrieveCommandInput,
-} from "@aws-sdk/client-bedrock-agent-runtime";
-import VaultMcpServer from "./vault-mcp-server";
+import { z } from "zod";
 
-// AWS client initialization
-const bedrockClient = new BedrockAgentRuntimeClient({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-});
+class VaultMcpServer {
+  private server: McpServer;
+  private vaultClient: any;
 
-interface RAGSource {
-  id: string;
-  fileName: string;
-  snippet: string;
-  score: number;
-}
+  constructor(vaultAddress: string, vaultToken: string) {
+    this.server = new McpServer({
+      name: "vault-mcp",
+      version: "1.0.0",
+      description: "MCP Server for HashiCorp Vault secret management",
+    });
 
-async function retrieveContext(
-  query: string,
-  knowledgeBaseId: string,
-  n: number = 3,
-): Promise<{
-  context: string;
-  isRagWorking: boolean;
-  ragSources: RAGSource[];
-}> {
-  try {
-    if (!knowledgeBaseId) {
-      console.error("knowledgeBaseId is not provided");
-      return {
-        context: "",
-        isRagWorking: false,
-        ragSources: [],
-      };
-    }
+    this.vaultClient = vault({
+      endpoint: vaultAddress,
+      token: vaultToken,
+    });
 
-    const input: RetrieveCommandInput = {
-      knowledgeBaseId: knowledgeBaseId,
-      retrievalQuery: { text: query },
-      retrievalConfiguration: {
-        vectorSearchConfiguration: { numberOfResults: n },
-      },
-    };
-
-    const command = new RetrieveCommand(input);
-    const response = await bedrockClient.send(command);
-    const rawResults = response?.retrievalResults || [];
-    const ragSources: RAGSource[] = rawResults
-      .filter((res) => res?.content?.text)
-      .map((result, index) => {
-        const uri = result?.location?.s3Location?.uri || "";
-        const fileName = uri.split("/").pop() || `Source-${index}.txt`;
-        return {
-          id:
-            (result.metadata?.["x-amz-bedrock-kb-chunk-id"] as string) ||
-            `chunk-${index}`,
-          fileName: fileName.replace(/_/g, " ").replace(".txt", ""),
-          snippet: result.content?.text || "",
-          score: (result.score as number) || 0,
-        };
-      })
-      .slice(0, 3);
-
-    const context = rawResults
-      .filter(
-        (res): res is { content: { text: string } } =>
-          res?.content?.text !== undefined,
-      )
-      .map((res) => res.content.text)
-      .join("\n\n");
-
-    return {
-      context,
-      isRagWorking: true,
-      ragSources,
-    };
-  } catch (error) {
-    console.error("RAG Error:", error);
-    return { context: "", isRagWorking: false, ragSources: [] };
+    // Register MCP behaviors (required for schema discovery and routing)
+    this.registerTools();
+    this.registerResources();
+    this.registerPrompts();
   }
-}
 
-// Define the retrieval tool
-const RETRIEVAL_TOOL: Tool = {
-  name: "retrieve_from_aws_kb",
-  description:
-    "Performs retrieval from the AWS Knowledge Base using the provided query and Knowledge Base ID.",
-  inputSchema: {
-    type: "object",
-    properties: {
-      query: {
-        type: "string",
-        description: "The query to perform retrieval on",
+  private registerTools() {
+    // Exposes write API from Vault KV v2 as an MCP tool
+    this.server.tool(
+      "secret/create",
+      {
+        path: z.string(),
+        data: z.record(z.any()),
       },
-      knowledgeBaseId: {
-        type: "string",
-        description: "The ID of the AWS Knowledge Base",
-      },
-      n: {
-        type: "number",
-        default: 3,
-        description: "Number of results to retrieve",
-      },
-    },
-    required: ["query", "knowledgeBaseId"],
-  },
-};
-
-// Server setup
-const server = new Server(
-  {
-    name: "aws-kb-retrieval-server",
-    version: "0.2.0",
-  },
-  {
-    capabilities: {
-      tools: {},
-    },
-  },
-);
-
-// Request handlers
-server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [RETRIEVAL_TOOL],
-}));
-
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
-
-  if (name === "retrieve_from_aws_kb") {
-    const { query, knowledgeBaseId, n = 3 } = args as Record<string, any>;
-    try {
-      const result = await retrieveContext(query, knowledgeBaseId, n);
-      if (result.isRagWorking) {
+      async ({ path, data }) => {
+        const result = await this.vaultClient.write(`secret/data/${path}`, {
+          data,
+        });
         return {
           content: [
-            { type: "text", text: `Context: ${result.context}` },
             {
               type: "text",
-              text: `RAG Sources: ${JSON.stringify(result.ragSources)}`,
+              text: `Secret written at: ${path}\n${JSON.stringify(result, null, 2)}`,
             },
           ],
         };
-      } else {
+      }
+    );
+
+    // Read a KV secret (raw vault response)
+    this.server.tool(
+      "secret/read",
+      {
+        path: z.string(),
+      },
+      async ({ path }) => {
+        const result = await this.vaultClient.read(`secret/data/${path}`);
         return {
           content: [
-            { type: "text", text: "Retrieval failed or returned no results." },
+            {
+              type: "text",
+              text: `Secret read at: ${path}\n${JSON.stringify(result, null, 2)}`,
+            },
           ],
         };
       }
-    } catch (error) {
+    );
+
+    // Soft-deletes a secret (versioned delete at KV v2 path)
+    this.server.tool(
+      "secret/delete",
+      {
+        path: z.string(),
+      },
+      async ({ path }) => {
+        const result = await this.vaultClient.delete(`secret/data/${path}`);
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Secret deleted at: ${path}\n${JSON.stringify(result, null, 2)}`,
+            },
+          ],
+        };
+      }
+    );
+
+    // Vault policy writer (policy = raw string, passed directly)
+    this.server.tool(
+      "policy/create",
+      {
+        name: z.string(),
+        policy: z.string(),
+      },
+      async ({ name, policy }) => {
+        const result = await this.vaultClient.sys.addPolicy({ name, policy });
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Policy '${name}' created.\n${JSON.stringify(result, null, 2)}`,
+            },
+          ],
+        };
+      }
+    );
+  }
+
+  private registerResources() {
+    // Lists top-level KV secret paths from Vault metadata
+    this.server.resource("vault-secrets", "vault://secrets", async () => {
+      try {
+        const result = await this.vaultClient.list("secret/metadata");
+        return {
+          contents: [
+            {
+              uri: "vault://secrets",
+              text: JSON.stringify(result.data.keys || []),
+            },
+          ],
+        };
+      } catch (err) {
+        return {
+          contents: [
+            {
+              uri: "vault://secrets",
+              text: "[]",
+            },
+          ],
+        };
+      }
+    });
+
+    // Lists current policy names from Vault
+    this.server.resource("vault-policies", "vault://policies", async () => {
+      const result = await this.vaultClient.sys.listPolicies();
       return {
-        content: [{ type: "text", text: `Error occurred: ${error}` }],
+        contents: [
+          {
+            uri: "vault://policies",
+            text: JSON.stringify(result),
+          },
+        ],
       };
-    }
-  } else {
-    return {
-      content: [{ type: "text", text: `Unknown tool: ${name}` }],
-      isError: true,
-    };
+    });
   }
-});
 
-// Server startup
-async function runServer() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error("AWS KB Retrieval Server running on stdio");
+  private registerPrompts() {
+    // Generates a Vault policy object from comma-separated capability string.
+    // Returned as MCP `prompt` format (messages[]) instead of `content[]`.
+    this.server.prompt(
+      "generate-policy",
+      {
+        path: z.string(),
+        capabilities: z.string(),
+      },
+      async ({ path, capabilities }) => {
+        const capArray = capabilities.split(",").map((c) => c.trim());
+
+        const policy = {
+          path: {
+            [path]: {
+              capabilities: capArray,
+            },
+          },
+        };
+
+        return {
+          messages: [
+            {
+              role: "user",
+              content: {
+                type: "text",
+                text: JSON.stringify(policy, null, 2),
+              },
+            },
+          ],
+        };
+      }
+    );
+  }
+
+  public async start() {
+    const transport = new StdioServerTransport();
+    await this.server.connect(transport);
+    console.error("Vault MCP Server running via stdio");
+  }
 }
 
-runServer().catch((error) => {
-  console.error("Fatal error running server:", error);
-  process.exit(1);
-});
-
-async function main() {
-  // Get Vault address and token from environment variables
-  const vaultAddress = process.env.VAULT_ADDR || "http://localhost:8200";
-  const vaultToken = process.env.VAULT_TOKEN;
-
-  if (!vaultToken) {
-    console.error("VAULT_TOKEN environment variable is required");
-    process.exit(1);
-  }
-
-  // Create and start the Vault MCP server
-  const server = new VaultMcpServer(vaultAddress, vaultToken);
-
-  try {
-    await server.start(3000);
-    console.log("Vault MCP Server started successfully");
-  } catch (error) {
-    console.error("Failed to start Vault MCP Server:", error);
-    process.exit(1);
-  }
-}
-
-main();
+export default VaultMcpServer;
