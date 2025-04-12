@@ -19,12 +19,14 @@ class VaultMcpServer {
       token: vaultToken,
     });
 
+    // Register MCP behaviors (required for schema discovery and routing)
     this.registerTools();
     this.registerResources();
     this.registerPrompts();
   }
 
   private registerTools() {
+    // Exposes write API from Vault KV v2 as an MCP tool
     this.server.tool(
       "secret/create",
       {
@@ -46,6 +48,7 @@ class VaultMcpServer {
       }
     );
 
+    // Read a KV secret (raw vault response)
     this.server.tool(
       "secret/read",
       {
@@ -64,6 +67,7 @@ class VaultMcpServer {
       }
     );
 
+    // Soft-deletes a secret (versioned delete at KV v2 path)
     this.server.tool(
       "secret/delete",
       {
@@ -82,6 +86,7 @@ class VaultMcpServer {
       }
     );
 
+    // Vault policy writer (policy = raw string, passed directly)
     this.server.tool(
       "policy/create",
       {
@@ -103,6 +108,7 @@ class VaultMcpServer {
   }
 
   private registerResources() {
+    // Lists top-level KV secret paths from Vault metadata
     this.server.resource("vault-secrets", "vault://secrets", async () => {
       try {
         const result = await this.vaultClient.list("secret/metadata");
@@ -126,6 +132,7 @@ class VaultMcpServer {
       }
     });
 
+    // Lists current policy names from Vault
     this.server.resource("vault-policies", "vault://policies", async () => {
       const result = await this.vaultClient.sys.listPolicies();
       return {
@@ -140,6 +147,8 @@ class VaultMcpServer {
   }
 
   private registerPrompts() {
+    // Generates a Vault policy object from comma-separated capability string.
+    // Returned as MCP `prompt` format (messages[]) instead of `content[]`.
     this.server.prompt(
       "generate-policy",
       {
