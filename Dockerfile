@@ -1,22 +1,27 @@
-FROM node:22.12-alpine AS builder
-
-COPY src/vault-mcp-server /app
-COPY tsconfig.json /tsconfig.json
+FROM oven/bun:1 AS builder
 
 WORKDIR /app
 
-RUN --mount=type=cache,target=/root/.npm npm install
+COPY package*.json .
+COPY bun.lock .
+COPY src/ ./src
 
-FROM node:22-alpine AS release
+RUN bun install
+RUN bun build ./src/index.ts --outfile=dist/index.js
+
+FROM oven/bun:1-slim AS release
 
 WORKDIR /app
 
-COPY --from=builder /app/dist /app/dist
-COPY --from=builder /app/package.json /app/package.json
-COPY --from=builder /app/package-lock.json /app/package-lock.json
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package.json .
+COPY --from=builder /app/bun.lockb .
+
+RUN bun install --production
 
 ENV NODE_ENV=production
+ENV VAULT_ADDR=""
+ENV VAULT_TOKEN=""
+ENV MCP_PORT=3000
 
-RUN npm ci --ignore-scripts --omit-dev
-
-ENTRYPOINT ["node", "dist/index.js"]
+ENTRYPOINT ["bun", "dist/index.js"]

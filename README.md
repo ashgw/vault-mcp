@@ -20,17 +20,45 @@ This allows:
 
 ## Installation
 
-You can run the Vault MCP server either locally or using Docker.
+There are many ways to go by this
+
+# Cursor
+
+Add this to your Cursor MCP configuration:
+
+```json
+{
+  "mcpServers": {
+    "vault": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "VAULT_ADDR=http://your-vault-server:8200",
+        "-e",
+        "VAULT_TOKEN=hvs.your-vault-token",
+        "-e",
+        "MCP_PORT=3000",
+        "ashgw/mcp-vault"
+      ]
+    }
+  }
+}
+```
+
+You can also run the Vault MCP server either locally or using Docker.
 
 ### Local Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/vault-mcp-server
-cd vault-mcp-server
+git clone https://github.com/ashgw/vault-mcp
+cd vault-mcp
 
-# Install dependencies
-npm install
+# Make sure you have bun tho
+bun install
 
 # Create .env file
 cp .env.example .env
@@ -65,7 +93,7 @@ Or build and run locally (after you clone ofc):
 
 ```bash
 # Build the Docker image
-docker build -t ashgw/vault-mcp .
+docker build -t vault-mcp .
 
 # Run the container
 docker run -d \
