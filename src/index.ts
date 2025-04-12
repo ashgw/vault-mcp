@@ -21,9 +21,24 @@ import { z } from "zod";
  * - Resource listing
  * - Policy generation helpers
  */
+
+// Add this validation schema
+const VaultConfigSchema = z.object({
+  VAULT_ADDR: z.string().url({
+    message:
+      "VAULT_ADDR must be a valid URL (e.g., http://vault.example.com:8200)",
+  }),
+  VAULT_TOKEN: z.string().min(3).startsWith("hsv/", {
+    message:
+      "VAULT_TOKEN must start with 'hvs.' prefix for HashiCorp Vault tokens",
+  }),
+  MCP_PORT: z.coerce.number().int().min(1).max(65535).optional().default(3000),
+});
+
 class VaultMcpServer {
   private server: McpServer;
   private vaultClient: any;
+  private config: z.infer<typeof VaultConfigSchema>;
 
   /**
    * Creates a new VaultMcpServer instance
@@ -32,6 +47,23 @@ class VaultMcpServer {
    * @param vaultToken - Authentication token for Vault access
    */
   constructor(vaultAddress: string, vaultToken: string) {
+    // Validate config
+    try {
+      this.config = VaultConfigSchema.parse({
+        VAULT_ADDR: vaultAddress,
+        VAULT_TOKEN: vaultToken,
+        MCP_PORT: process.env.MCP_PORT,
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const issues = error.issues
+          .map((issue) => `- ${issue.path}: ${issue.message}`)
+          .join("\n");
+        throw new Error(`Invalid Vault configuration:\n${issues}`);
+      }
+      throw error;
+    }
+
     this.server = new McpServer({
       name: "vault-mcp",
       version: "1.0.0",
@@ -39,8 +71,8 @@ class VaultMcpServer {
     });
 
     this.vaultClient = vault({
-      endpoint: vaultAddress,
-      token: vaultToken,
+      endpoint: this.config.VAULT_ADDR,
+      token: this.config.VAULT_TOKEN,
     });
 
     this.registerTools();

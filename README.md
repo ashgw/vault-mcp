@@ -11,13 +11,6 @@ This allows:
 - Resource discovery and listing
 - Automated policy generation
 
-## Prerequisites
-
-- Node.js 18 or higher
-- HashiCorp Vault instance (v1.12+)
-- Vault token with appropriate permissions
-- MCP-compatible client
-
 ## Installation
 
 There are many ways to go by this
@@ -135,7 +128,6 @@ await tool("secret/create", {
 Retrieves a secret from specified path.
 
 ```typescript
-// Example usage
 await tool("secret/read", {
   path: "apps/myapp/config",
 });
@@ -146,7 +138,6 @@ await tool("secret/read", {
 Soft-deletes a secret (versioned delete in KV v2).
 
 ```typescript
-// Example usage
 await tool("secret/delete", {
   path: "apps/myapp/config",
 });
@@ -159,7 +150,6 @@ await tool("secret/delete", {
 Creates a new Vault policy with specified permissions.
 
 ```typescript
-// Example usage
 await tool("policy/create", {
   name: "app-readonly",
   policy: `
@@ -177,7 +167,6 @@ await tool("policy/create", {
 Lists all available secret paths in the KV store.
 
 ```typescript
-// Example response
 {
   "keys": [
     "apps/",
@@ -192,7 +181,6 @@ Lists all available secret paths in the KV store.
 Lists all available Vault policies.
 
 ```typescript
-// Example response
 {
   "policies": [
     "default",
@@ -209,13 +197,11 @@ Lists all available Vault policies.
 Generates a Vault policy from path and capabilities.
 
 ```typescript
-// Example usage
 await prompt("generate-policy", {
   path: "secret/data/apps/*",
   capabilities: "read,list"
 });
 
-// Example response
 {
   "path": {
     "secret/data/apps/*": {
@@ -224,19 +210,6 @@ await prompt("generate-policy", {
   }
 }
 ```
-
-## Security Considerations
-
-1. **Token Management**
-
-   - Use tokens with minimal required permissions
-   - Regularly rotate tokens
-   - Enable token TTLs
-
-2. **Access Control**
-   - Implement proper network security
-   - Use TLS for Vault communication
-   - Follow least privilege principle
 
 ## License
 
