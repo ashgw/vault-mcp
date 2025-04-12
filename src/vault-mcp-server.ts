@@ -1,4 +1,4 @@
-import { McpServer, Tool, Resource, Prompt } from "@modelcontextprotocol/sdk";
+import { McpServer, Tool, Resource, Prompt } from "@mcp/sdk";
 import vault from "node-vault";
 
 class VaultMcpServer {

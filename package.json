@@ -22,7 +22,7 @@
     "lint": "prettier --check ."
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.7.0",
+    "@modelcontextprotocol/typescript-sdk": "^0.7.0",
     "node-vault": "^0.10.2",
     "dotenv": "^16.0.0"
   },
