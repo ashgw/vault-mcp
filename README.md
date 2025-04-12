@@ -1,114 +1,218 @@
 # HashiCorp Vault MCP Server
 
-This is a Model Context Protocol (MCP) server that provides an interface to HashiCorp Vault for secret management. It makes it easier to interact with Vault through MCP-compatible clients.
+A Model Context Protocol (MCP) server implementation that provides a secure interface to HashiCorp Vault, enabling LLMs and other MCP clients to interact with Vault's secret and policy management features.
 
-## Features
+## Overview
 
-- Secret Management
-  - Create, read, and delete secrets
-  - List secret paths
-- Policy Management
-  - Create and manage Vault policies
-  - List existing policies
-- Prompts for common operations
-  - Generate policy definitions
-  - Secret rotation workflows
+This allows:
+
+- Secure secret management through structured API
+- Policy creation and management
+- Resource discovery and listing
+- Automated policy generation
 
 ## Prerequisites
 
-- Node.js 16 or higher
-- A running HashiCorp Vault instance
+- Node.js 18 or higher
+- HashiCorp Vault instance (v1.12+)
 - Vault token with appropriate permissions
+- MCP-compatible client
 
-## Installation
+## Cursor usage
+
+1. **Installation**
 
 ```bash
+# Clone the repository
+git clone https://github.com/your-org/vault-mcp-server
+cd vault-mcp-server
+
+# Install dependencies
 npm install
 ```
 
-## Configuration
+2. **Configuration**
 
-Set the following environment variables:
+```bash
+# Create .env file
+cp .env.example .env
 
-- `VAULT_ADDR`: The address of your Vault server (default: http://localhost:8200)
-- `VAULT_TOKEN`: Your Vault authentication token
-
-You can create a `.env` file in the root directory:
-
-```env
+# Configure your environment variables
 VAULT_ADDR=http://your-vault-server:8200
-VAULT_TOKEN=your-vault-token
+VAULT_TOKEN=hvs.your-vault-token
+MCP_PORT=3000  # Optional, defaults to 3000
 ```
 
-## Usage
-
-1. Build the project:
+3. **Build and Run**
 
 ```bash
+# Build the project
 npm run build
-```
 
-2. Start the server:
-
-```bash
+# Start the server
 npm start
 ```
 
-The MCP server will start on port 3000 by default.
+## Features in Detail
 
-## Available Tools
+### Secret Management Tools
 
-### Secret Management
+#### `secret/create`
 
-- `secret/create`: Create a new secret
+Creates or updates a secret at specified path.
 
-  ```typescript
-  params: {
-    path: string;
-    data: Record<string, any>;
-  }
-  ```
+```typescript
+// Example usage
+await tool("secret/create", {
+  path: "apps/myapp/config",
+  data: {
+    apiKey: "secret-key-123",
+    environment: "production",
+  },
+});
+```
 
-- `secret/read`: Read a secret
+#### `secret/read`
 
-  ```typescript
-  params: {
-    path: string;
-  }
-  ```
+Retrieves a secret from specified path.
 
-- `secret/delete`: Delete a secret
-  ```typescript
-  params: {
-    path: string;
-  }
-  ```
+```typescript
+// Example usage
+await tool("secret/read", {
+  path: "apps/myapp/config",
+});
+```
+
+#### `secret/delete`
+
+Soft-deletes a secret (versioned delete in KV v2).
+
+```typescript
+// Example usage
+await tool("secret/delete", {
+  path: "apps/myapp/config",
+});
+```
 
 ### Policy Management
 
-- `policy/create`: Create a new policy
-  ```typescript
-  params: {
-    name: string;
-    policy: string;
+#### `policy/create`
+
+Creates a new Vault policy with specified permissions.
+
+```typescript
+// Example usage
+await tool("policy/create", {
+  name: "app-readonly",
+  policy: `
+    path "secret/data/apps/myapp/*" {
+      capabilities = ["read", "list"]
+    }
+  `,
+});
+```
+
+### Resources
+
+#### `vault://secrets`
+
+Lists all available secret paths in the KV store.
+
+```typescript
+// Example response
+{
+  "keys": [
+    "apps/",
+    "databases/",
+    "certificates/"
+  ]
+}
+```
+
+#### `vault://policies`
+
+Lists all available Vault policies.
+
+```typescript
+// Example response
+{
+  "policies": [
+    "default",
+    "app-readonly",
+    "admin"
+  ]
+}
+```
+
+### Prompts
+
+#### `generate-policy`
+
+Generates a Vault policy from path and capabilities.
+
+```typescript
+// Example usage
+await prompt("generate-policy", {
+  path: "secret/data/apps/*",
+  capabilities: "read,list"
+});
+
+// Example response
+{
+  "path": {
+    "secret/data/apps/*": {
+      "capabilities": ["read", "list"]
+    }
   }
-  ```
+}
+```
 
-## Available Resources
+## Security Considerations
 
-- `vault://secrets`: List of secret paths in Vault
-- `vault://policies`: List of Vault policies
+1. **Token Management**
 
-## Available Prompts
+   - Use tokens with minimal required permissions
+   - Regularly rotate tokens
+   - Enable token TTLs
 
-- `generate-policy`: Generate a Vault policy for specific path and capabilities
-  ```typescript
-  params: {
-    path: string;
-    capabilities: string[];
-  }
-  ```
+2. **Access Control**
+   - Implement proper network security
+   - Use TLS for Vault communication
+   - Follow least privilege principle
+
+## Error Handling
+
+The server implements comprehensive error handling for:
+
+- Vault connection issues
+- Authentication failures
+- Permission denied errors
+- Invalid request formats
+
+## Development
+
+### Running Tests
+
+```bash
+# Run unit tests
+npm test
+
+# Run integration tests (requires Vault)
+npm run test:integration
+```
+
+### Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
 
 MIT
+
+## Support
+
+For issues and feature requests, please use the GitHub issues tracker.
