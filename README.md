@@ -18,9 +18,11 @@ This allows:
 - Vault token with appropriate permissions
 - MCP-compatible client
 
-## Cursor usage
+## Installation
 
-1. **Installation**
+You can run the Vault MCP server either locally or using Docker.
+
+### Local Installation
 
 ```bash
 # Clone the repository
@@ -29,11 +31,7 @@ cd vault-mcp-server
 
 # Install dependencies
 npm install
-```
 
-2. **Configuration**
-
-```bash
 # Create .env file
 cp .env.example .env
 
@@ -41,17 +39,49 @@ cp .env.example .env
 VAULT_ADDR=http://your-vault-server:8200
 VAULT_TOKEN=hvs.your-vault-token
 MCP_PORT=3000  # Optional, defaults to 3000
-```
 
-3. **Build and Run**
-
-```bash
-# Build the project
+# Build and run
 npm run build
-
-# Start the server
 npm start
 ```
+
+Then pin point your client to wherever you set the server
+
+### Docker Installation
+
+You can quickly run the server using the pre-built Docker image:
+
+```bash
+docker run -d \
+  --name vault-mcp \
+  -e VAULT_ADDR=http://your-vault-server:8200 \
+  -e VAULT_TOKEN=hvs.your-vault-token \
+  -e MCP_PORT=3000 \
+  -p 3000:3000 \
+  ashgw/vault-mcp:latest
+```
+
+Or build and run locally (after you clone ofc):
+
+```bash
+# Build the Docker image
+docker build -t ashgw/vault-mcp .
+
+# Run the container
+docker run -d \
+  --name vault-mcp \
+  -e VAULT_ADDR=http://your-vault-server:8200 \
+  -e VAULT_TOKEN=hvs.your-vault-token \
+  -e MCP_PORT=3000 \
+  -p 3000:3000 \
+  ashgw/vault-mcp
+```
+
+### Environment Variables
+
+- `VAULT_ADDR`: Your HashiCorp Vault server address
+- `VAULT_TOKEN`: Valid Vault token with appropriate permissions
+- `MCP_PORT`: Port for the MCP server (default: 3000)
 
 ## Features in Detail
 
@@ -180,39 +210,6 @@ await prompt("generate-policy", {
    - Use TLS for Vault communication
    - Follow least privilege principle
 
-## Error Handling
-
-The server implements comprehensive error handling for:
-
-- Vault connection issues
-- Authentication failures
-- Permission denied errors
-- Invalid request formats
-
-## Development
-
-### Running Tests
-
-```bash
-# Run unit tests
-npm test
-
-# Run integration tests (requires Vault)
-npm run test:integration
-```
-
-### Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
 ## License
 
 MIT
-
-## Support
-
-For issues and feature requests, please use the GitHub issues tracker.
