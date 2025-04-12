@@ -1,11 +1,11 @@
 {
-  "name": "hasicorp-vault-mcp",
+  "name": "vault-mcp",
   "version": "1.0.0",
   "description": "MCP Server for HashiCorp Vault secret management",
   "license": "MIT",
   "author": "@ashgw",
-  "homepage": "https://ashgw/hashicorp-vault-mcp",
-  "bugs": "https://github.co/ashgw/hashicorp-vault-mcp/issues",
+  "homepage": "https://ashgw/vault-mcp",
+  "bugs": "https://github.co/ashgw/vault-mcp/issues",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
