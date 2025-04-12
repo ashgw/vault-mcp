@@ -32,7 +32,7 @@ interface RAGSource {
 async function retrieveContext(
   query: string,
   knowledgeBaseId: string,
-  n: number = 3
+  n: number = 3,
 ): Promise<{
   context: string;
   isRagWorking: boolean;
@@ -78,7 +78,7 @@ async function retrieveContext(
     const context = rawResults
       .filter(
         (res): res is { content: { text: string } } =>
-          res?.content?.text !== undefined
+          res?.content?.text !== undefined,
       )
       .map((res) => res.content.text)
       .join("\n\n");
@@ -130,7 +130,7 @@ const server = new Server(
     capabilities: {
       tools: {},
     },
-  }
+  },
 );
 
 // Request handlers
