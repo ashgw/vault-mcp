@@ -1,13 +1,13 @@
 {
-  "name": "hashicorp-vault-mcp",
-  "version": "0.1.0",
-  "description": "MCP server for HCP Vault Secrets retrieval",
+  "name": "hasicorp-vault-mcp",
+  "version": "1.0.0",
+  "description": "MCP Server for HashiCorp Vault secret management",
   "license": "MIT",
   "author": "@ashgw",
   "homepage": "https://ashgw/hashicorp-vault-mcp",
   "bugs": "https://github.co/ashgw/hashicorp-vault-mcp/issues",
   "type": "module",
-  "main": "lib/main.js",
+  "main": "dist/index.js",
   "bin": {
     "hashicorp-vault-mcp": "dist/index.js"
   },
@@ -15,17 +15,21 @@
     "dist"
   ],
   "scripts": {
-    "build": "bun build src/index.ts --target=node --outdir=dist --format=esm",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
     "format": "prettier --write .",
     "lint": "prettier --check ."
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "0.5.0",
-    "@aws-sdk/client-bedrock-agent-runtime": "^3.0.0"
+    "@modelcontextprotocol/sdk": "^0.7.0",
+    "node-vault": "^0.10.2",
+    "dotenv": "^16.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22",
+    "@types/node": "^18.0.0",
     "prettier": "^3.1.1",
-    "typescript": "^5.6.2"
+    "typescript": "^4.9.0",
+    "ts-node": "^10.9.0"
   }
 }

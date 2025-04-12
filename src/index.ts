@@ -11,6 +11,7 @@ import {
   RetrieveCommand,
   RetrieveCommandInput,
 } from "@aws-sdk/client-bedrock-agent-runtime";
+import VaultMcpServer from "./vault-mcp-server";
 
 // AWS client initialization
 const bedrockClient = new BedrockAgentRuntimeClient({
@@ -185,3 +186,27 @@ runServer().catch((error) => {
   console.error("Fatal error running server:", error);
   process.exit(1);
 });
+
+async function main() {
+  // Get Vault address and token from environment variables
+  const vaultAddress = process.env.VAULT_ADDR || "http://localhost:8200";
+  const vaultToken = process.env.VAULT_TOKEN;
+
+  if (!vaultToken) {
+    console.error("VAULT_TOKEN environment variable is required");
+    process.exit(1);
+  }
+
+  // Create and start the Vault MCP server
+  const server = new VaultMcpServer(vaultAddress, vaultToken);
+
+  try {
+    await server.start(3000);
+    console.log("Vault MCP Server started successfully");
+  } catch (error) {
+    console.error("Failed to start Vault MCP Server:", error);
+    process.exit(1);
+  }
+}
+
+main();
