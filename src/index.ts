@@ -28,9 +28,9 @@ const VaultConfigSchema = z.object({
     message:
       "VAULT_ADDR must be a valid URL (e.g., http://vault.example.com:8200)",
   }),
-  VAULT_TOKEN: z.string().min(3).startsWith("hsv/", {
+  VAULT_TOKEN: z.string().min(3).startsWith("hsv.", {
     message:
-      "VAULT_TOKEN must start with 'hvs.' prefix for HashiCorp Vault tokens",
+      "VAULT_TOKEN must start with 'hsv.' prefix for HashiCorp Vault tokens",
   }),
   MCP_PORT: z.coerce.number().int().min(1).max(65535).optional().default(3000),
 });
@@ -309,3 +309,32 @@ export default VaultMcpServer;
  * });
  * ```
  */
+
+async function main() {
+  console.error("Starting Vault MCP Server...");
+
+  // Load environment variables
+  const vaultAddr = process.env.VAULT_ADDR;
+  const vaultToken = process.env.VAULT_TOKEN;
+
+  if (!vaultAddr || !vaultToken) {
+    console.error(
+      "Error: VAULT_ADDR and VAULT_TOKEN environment variables are required"
+    );
+    process.exit(1);
+  }
+
+  try {
+    const server = new VaultMcpServer(vaultAddr, vaultToken);
+    console.error(`Connecting to Vault at: ${vaultAddr}`);
+    await server.start();
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+}
+
+// Auto-start if this is the main module
+if (import.meta.url === new URL(import.meta.resolve("./index.ts")).href) {
+  main();
+}
