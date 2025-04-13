@@ -44,7 +44,6 @@ jobs:
 
   docker-push:
     if: github.event_name == 'push'
-    needs: run-tests-2
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
