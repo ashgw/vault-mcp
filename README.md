@@ -49,6 +49,8 @@ Cursor will route that request through the MCP server automatically.
 
 Check if it works, it should be green
 
+![image](https://github.com/user-attachments/assets/91fa0811-5890-4506-bf54-19e0ba688d23)
+
 ---
 
 ### Docker (manual)
