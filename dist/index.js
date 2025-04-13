@@ -463,6 +463,44 @@ var require_browser = __commonJS((exports, module) => {
   };
 });
 
+// node_modules/supports-color/index.js
+var require_supports_color = __commonJS((exports, module) => {
+  var argv = process.argv;
+  var terminator = argv.indexOf("--");
+  var hasFlag = function(flag) {
+    flag = "--" + flag;
+    var pos = argv.indexOf(flag);
+    return pos !== -1 && (terminator !== -1 ? pos < terminator : true);
+  };
+  module.exports = function() {
+    if ("FORCE_COLOR" in process.env) {
+      return true;
+    }
+    if (hasFlag("no-color") || hasFlag("no-colors") || hasFlag("color=false")) {
+      return false;
+    }
+    if (hasFlag("color") || hasFlag("colors") || hasFlag("color=true") || hasFlag("color=always")) {
+      return true;
+    }
+    if (process.stdout && !process.stdout.isTTY) {
+      return false;
+    }
+    if (process.platform === "win32") {
+      return true;
+    }
+    if ("COLORTERM" in process.env) {
+      return true;
+    }
+    if (process.env.TERM === "dumb") {
+      return false;
+    }
+    if (/^screen|^xterm|^vt100|color|ansi|cygwin|linux/i.test(process.env.TERM)) {
+      return true;
+    }
+    return false;
+  }();
+});
+
 // node_modules/debug/src/node.js
 var require_node = __commonJS((exports, module) => {
   var tty = __require("tty");
@@ -476,7 +514,7 @@ var require_node = __commonJS((exports, module) => {
   exports.destroy = util.deprecate(() => {}, "Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.");
   exports.colors = [6, 2, 3, 4, 5, 1];
   try {
-    const supportsColor = (()=>{throw new Error("Cannot require module "+"supports-color");})();
+    const supportsColor = require_supports_color();
     if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
       exports.colors = [
         20,
@@ -37859,7 +37897,7 @@ var require_isstream = __commonJS((exports, module) => {
   module.exports.isDuplex = isDuplex;
 });
 
-// node_modules/bluebird/js/main/es5.js
+// node_modules/stream-length/node_modules/bluebird/js/main/es5.js
 var require_es5 = __commonJS((exports, module) => {
   var isES5 = function() {
     return this === undefined;
@@ -37941,7 +37979,7 @@ var require_es5 = __commonJS((exports, module) => {
   var ArrayIsArray;
 });
 
-// node_modules/bluebird/js/main/util.js
+// node_modules/stream-length/node_modules/bluebird/js/main/util.js
 var require_util2 = __commonJS((exports, module) => {
   var es5 = require_es5();
   var canEvaluate = typeof navigator == "undefined";
@@ -38231,7 +38269,7 @@ var require_util2 = __commonJS((exports, module) => {
   module.exports = ret;
 });
 
-// node_modules/bluebird/js/main/schedule.js
+// node_modules/stream-length/node_modules/bluebird/js/main/schedule.js
 var require_schedule = __commonJS((exports, module) => {
   var schedule;
   var util = require_util2();
@@ -38275,7 +38313,7 @@ var require_schedule = __commonJS((exports, module) => {
   module.exports = schedule;
 });
 
-// node_modules/bluebird/js/main/queue.js
+// node_modules/stream-length/node_modules/bluebird/js/main/queue.js
 var require_queue = __commonJS((exports, module) => {
   function arrayMove(src, srcIndex, dst, dstIndex, len) {
     for (var j = 0;j < len; ++j) {
@@ -38354,7 +38392,7 @@ var require_queue = __commonJS((exports, module) => {
   module.exports = Queue;
 });
 
-// node_modules/bluebird/js/main/async.js
+// node_modules/stream-length/node_modules/bluebird/js/main/async.js
 var require_async2 = __commonJS((exports, module) => {
   var firstLineError;
   try {
@@ -38501,7 +38539,7 @@ var require_async2 = __commonJS((exports, module) => {
   module.exports.firstLineError = firstLineError;
 });
 
-// node_modules/bluebird/js/main/errors.js
+// node_modules/stream-length/node_modules/bluebird/js/main/errors.js
 var require_errors3 = __commonJS((exports, module) => {
   var es5 = require_es5();
   var Objectfreeze = es5.freeze;
@@ -38611,7 +38649,7 @@ var require_errors3 = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/thenables.js
+// node_modules/stream-length/node_modules/bluebird/js/main/thenables.js
 var require_thenables = __commonJS((exports, module) => {
   module.exports = function(Promise2, INTERNAL) {
     var util = require_util2();
@@ -38687,7 +38725,7 @@ var require_thenables = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/promise_array.js
+// node_modules/stream-length/node_modules/bluebird/js/main/promise_array.js
 var require_promise_array = __commonJS((exports, module) => {
   module.exports = function(Promise2, INTERNAL, tryConvertToPromise, apiRejection) {
     var util = require_util2();
@@ -38816,7 +38854,7 @@ var require_promise_array = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/captured_trace.js
+// node_modules/stream-length/node_modules/bluebird/js/main/captured_trace.js
 var require_captured_trace = __commonJS((exports, module) => {
   module.exports = function() {
     var async = require_async2();
@@ -39269,7 +39307,7 @@ var require_captured_trace = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/debuggability.js
+// node_modules/stream-length/node_modules/bluebird/js/main/debuggability.js
 var require_debuggability = __commonJS((exports, module) => {
   module.exports = function(Promise2, CapturedTrace) {
     var getDomain = Promise2._getDomain;
@@ -39407,7 +39445,7 @@ var require_debuggability = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/context.js
+// node_modules/stream-length/node_modules/bluebird/js/main/context.js
 var require_context = __commonJS((exports, module) => {
   module.exports = function(Promise2, CapturedTrace, isDebugging) {
     var contextStack = [];
@@ -39446,7 +39484,7 @@ var require_context = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/catch_filter.js
+// node_modules/stream-length/node_modules/bluebird/js/main/catch_filter.js
 var require_catch_filter = __commonJS((exports, module) => {
   module.exports = function(NEXT_FILTER) {
     var util = require_util2();
@@ -39511,7 +39549,7 @@ var require_catch_filter = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/promise_resolver.js
+// node_modules/stream-length/node_modules/bluebird/js/main/promise_resolver.js
 var require_promise_resolver = __commonJS((exports, module) => {
   var util = require_util2();
   var maybeWrapAsError = util.maybeWrapAsError;
@@ -39632,7 +39670,7 @@ var require_promise_resolver = __commonJS((exports, module) => {
   module.exports = PromiseResolver;
 });
 
-// node_modules/bluebird/js/main/progress.js
+// node_modules/stream-length/node_modules/bluebird/js/main/progress.js
 var require_progress = __commonJS((exports, module) => {
   module.exports = function(Promise2, PromiseArray) {
     var util = require_util2();
@@ -39698,7 +39736,7 @@ var require_progress = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/method.js
+// node_modules/stream-length/node_modules/bluebird/js/main/method.js
 var require_method = __commonJS((exports, module) => {
   module.exports = function(Promise2, INTERNAL, tryConvertToPromise, apiRejection) {
     var util = require_util2();
@@ -39745,7 +39783,7 @@ var require_method = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/bind.js
+// node_modules/stream-length/node_modules/bluebird/js/main/bind.js
 var require_bind = __commonJS((exports, module) => {
   module.exports = function(Promise2, INTERNAL, tryConvertToPromise) {
     var rejectThis = function(_, e) {
@@ -39811,7 +39849,7 @@ var require_bind = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/finally.js
+// node_modules/stream-length/node_modules/bluebird/js/main/finally.js
 var require_finally = __commonJS((exports, module) => {
   module.exports = function(Promise2, NEXT_FILTER, tryConvertToPromise) {
     var util = require_util2();
@@ -39891,7 +39929,7 @@ var require_finally = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/direct_resolve.js
+// node_modules/stream-length/node_modules/bluebird/js/main/direct_resolve.js
 var require_direct_resolve = __commonJS((exports, module) => {
   var util = require_util2();
   var isPrimitive = util.isPrimitive;
@@ -39938,7 +39976,7 @@ var require_direct_resolve = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/synchronous_inspection.js
+// node_modules/stream-length/node_modules/bluebird/js/main/synchronous_inspection.js
 var require_synchronous_inspection = __commonJS((exports, module) => {
   module.exports = function(Promise2) {
     function PromiseInspection(promise) {
@@ -40025,7 +40063,7 @@ var require_synchronous_inspection = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/join.js
+// node_modules/stream-length/node_modules/bluebird/js/main/join.js
 var require_join = __commonJS((exports, module) => {
   module.exports = function(Promise2, PromiseArray, tryConvertToPromise, INTERNAL) {
     var util = require_util2();
@@ -40131,7 +40169,7 @@ var require_join = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/map.js
+// node_modules/stream-length/node_modules/bluebird/js/main/map.js
 var require_map = __commonJS((exports, module) => {
   module.exports = function(Promise2, PromiseArray, apiRejection, tryConvertToPromise, INTERNAL) {
     var getDomain = Promise2._getDomain;
@@ -40259,7 +40297,7 @@ var require_map = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/cancel.js
+// node_modules/stream-length/node_modules/bluebird/js/main/cancel.js
 var require_cancel = __commonJS((exports, module) => {
   module.exports = function(Promise2) {
     var errors = require_errors3();
@@ -40306,7 +40344,7 @@ var require_cancel = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/using.js
+// node_modules/stream-length/node_modules/bluebird/js/main/using.js
 var require_using = __commonJS((exports, module) => {
   module.exports = function(Promise2, apiRejection, tryConvertToPromise, createContext) {
     var TypeError2 = require_errors3().TypeError;
@@ -40491,7 +40529,7 @@ var require_using = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/generators.js
+// node_modules/stream-length/node_modules/bluebird/js/main/generators.js
 var require_generators = __commonJS((exports, module) => {
   module.exports = function(Promise2, apiRejection, INTERNAL, tryConvertToPromise) {
     var errors = require_errors3();
@@ -40614,7 +40652,7 @@ var require_generators = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/nodeify.js
+// node_modules/stream-length/node_modules/bluebird/js/main/nodeify.js
 var require_nodeify = __commonJS((exports, module) => {
   module.exports = function(Promise2) {
     var util = require_util2();
@@ -40664,7 +40702,7 @@ var require_nodeify = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/call_get.js
+// node_modules/stream-length/node_modules/bluebird/js/main/call_get.js
 var require_call_get = __commonJS((exports, module) => {
   var cr = Object.create;
   if (cr) {
@@ -40788,7 +40826,7 @@ var require_call_get = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/props.js
+// node_modules/stream-length/node_modules/bluebird/js/main/props.js
 var require_props = __commonJS((exports, module) => {
   module.exports = function(Promise2, PromiseArray, tryConvertToPromise, apiRejection) {
     var util = require_util2();
@@ -40860,7 +40898,7 @@ var require_props = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/race.js
+// node_modules/stream-length/node_modules/bluebird/js/main/race.js
 var require_race = __commonJS((exports, module) => {
   module.exports = function(Promise2, INTERNAL, tryConvertToPromise, apiRejection) {
     var isArray = require_util2().isArray;
@@ -40903,7 +40941,7 @@ var require_race = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/reduce.js
+// node_modules/stream-length/node_modules/bluebird/js/main/reduce.js
 var require_reduce = __commonJS((exports, module) => {
   module.exports = function(Promise2, PromiseArray, apiRejection, tryConvertToPromise, INTERNAL) {
     var getDomain = Promise2._getDomain;
@@ -41042,7 +41080,7 @@ var require_reduce = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/settle.js
+// node_modules/stream-length/node_modules/bluebird/js/main/settle.js
 var require_settle = __commonJS((exports, module) => {
   module.exports = function(Promise2, PromiseArray) {
     var PromiseInspection = Promise2.PromiseInspection;
@@ -41079,7 +41117,7 @@ var require_settle = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/some.js
+// node_modules/stream-length/node_modules/bluebird/js/main/some.js
 var require_some = __commonJS((exports, module) => {
   module.exports = function(Promise2, PromiseArray, apiRejection) {
     var util = require_util2();
@@ -41186,7 +41224,7 @@ var require_some = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/promisify.js
+// node_modules/stream-length/node_modules/bluebird/js/main/promisify.js
 var require_promisify = __commonJS((exports, module) => {
   module.exports = function(Promise2, INTERNAL) {
     var THIS = {};
@@ -41445,7 +41483,7 @@ var require_promisify = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/any.js
+// node_modules/stream-length/node_modules/bluebird/js/main/any.js
 var require_any = __commonJS((exports, module) => {
   module.exports = function(Promise2) {
     var SomePromiseArray = Promise2._SomePromiseArray;
@@ -41466,7 +41504,7 @@ var require_any = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/each.js
+// node_modules/stream-length/node_modules/bluebird/js/main/each.js
 var require_each = __commonJS((exports, module) => {
   module.exports = function(Promise2, INTERNAL) {
     var PromiseReduce = Promise2.reduce;
@@ -41479,7 +41517,7 @@ var require_each = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/timers.js
+// node_modules/stream-length/node_modules/bluebird/js/main/timers.js
 var require_timers = __commonJS((exports, module) => {
   module.exports = function(Promise2, INTERNAL) {
     var util = require_util2();
@@ -41545,7 +41583,7 @@ var require_timers = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/filter.js
+// node_modules/stream-length/node_modules/bluebird/js/main/filter.js
 var require_filter = __commonJS((exports, module) => {
   module.exports = function(Promise2, INTERNAL) {
     var PromiseMap = Promise2.map;
@@ -41558,7 +41596,7 @@ var require_filter = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/promise.js
+// node_modules/stream-length/node_modules/bluebird/js/main/promise.js
 var require_promise = __commonJS((exports, module) => {
   module.exports = function() {
     var makeSelfResolutionError = function() {
@@ -42189,7 +42227,7 @@ var require_promise = __commonJS((exports, module) => {
   };
 });
 
-// node_modules/bluebird/js/main/bluebird.js
+// node_modules/stream-length/node_modules/bluebird/js/main/bluebird.js
 var require_bluebird = __commonJS((exports, module) => {
   var old;
   if (typeof Promise !== "undefined")
@@ -59981,7 +60019,6 @@ ${JSON.stringify(result, null, 2)}`
 }
 var src_default = VaultMcpServer;
 async function main() {
-  console.error("Starting Vault MCP Server...");
   const vaultAddr = process.env.VAULT_ADDR;
   const vaultToken = process.env.VAULT_TOKEN;
   if (!vaultAddr || !vaultToken) {
@@ -59990,7 +60027,6 @@ async function main() {
   }
   try {
     const server = new VaultMcpServer(vaultAddr, vaultToken);
-    console.error(`Connecting to Vault at: ${vaultAddr}`);
     await server.start();
   } catch (error) {
     console.error("Failed to start server:", error);
