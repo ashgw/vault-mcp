@@ -19,6 +19,7 @@ permissions:
 env:
   SHA: ${{ github.sha }}
   DOCKERHUB_USERNAME: ashgw
+
 jobs:
   fmt:
     runs-on: ubuntu-latest
@@ -32,7 +33,7 @@ jobs:
         run: bun run format
 
   docker-push:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    if: github.event_name == 'push'
     needs: run-tests-2
     runs-on: ubuntu-latest
     steps:
