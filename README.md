@@ -1,10 +1,10 @@
 # HashiCorp Vault MCP Server
 
-A Model Context Protocol (MCP) server implementation that provides a secure interface to HashiCorp Vault, enabling LLMs and other MCP clients to interact with Vault's secret and policy management features.
+A Model Context Protocol (MCP) server implementation that provides a secure interface to HashiCorp Vault which enables LLMs and other MCP clients to interact with Vault's secret and policy management features.
 
 ## Overview
 
-This allows:
+This allows you to prompt an LLM to:
 
 - Secure secret management through structured API
 - Policy creation and management
@@ -13,96 +13,66 @@ This allows:
 
 ## Installation
 
-There are many ways to go by this
+There are multiple ways to use this server depending on your setup.
 
-# Cursor
+### Cursor (recommended)
 
 Add this to your Cursor MCP configuration:
 
 ```json
 {
   "mcpServers": {
-    "vault": {
+    "Vault MCP": {
       "command": "docker",
       "args": [
         "run",
         "-i",
         "--rm",
         "-e",
-        "VAULT_ADDR=http://your-vault-server:8200",
+        "VAULT_ADDR=https://your-vault-server:8200",
         "-e",
         "VAULT_TOKEN=hvs.your-vault-token",
-        "-e",
-        "MCP_PORT=3000",
-        "ashgw/mcp-vault"
+        "ashgw/vault-mcp"
       ]
     }
   }
 }
 ```
 
-You can also run the Vault MCP server either locally or using Docker.
+Once added, you can use prompts like:
 
-### Local Installation
+> "Read the secret at path `apps/myapp/config` from Vault"
 
-```bash
-# Clone the repository
-git clone https://github.com/ashgw/vault-mcp
-cd vault-mcp
+Cursor will route that request through the MCP server automatically.
 
-# Make sure you have bun tho
-bun install
+---
 
-# Create .env file
-cp .env.example .env
+### Docker (manual)
 
-# Configure your environment variables
-VAULT_ADDR=http://your-vault-server:8200
-VAULT_TOKEN=hvs.your-vault-token
-MCP_PORT=3000  # Optional, defaults to 3000
-
-# Build and run
-npm run build
-npm start
-```
-
-Then pin point your client to wherever you set the server
-
-### Docker Installation
-
-Build and run locally (after you clone ofc):
-
-```bash
-# Build the Docker image
-docker build -t vault-mcp .
-
-# Run the container
-docker run -d \
-  --name vault-mcp \
-  -e VAULT_ADDR=http://your-vault-server:8200 \
-  -e VAULT_TOKEN=hvs.your-vault-token \
-  -e MCP_PORT=3000 \
-  -p 3000:3000 \
-  vault-mcp
-```
-
-Or, you can quickly run the server using the pre-built Docker image:
+If you're running Vault MCP manually via Docker:
 
 ```bash
 docker run -d \
   --name vault-mcp \
-  -e VAULT_ADDR=http://your-vault-server:8200 \
+  -e VAULT_ADDR=https://your-vault-server:8200 \
   -e VAULT_TOKEN=hvs.your-vault-token \
-  -e MCP_PORT=3000 \
   -p 3000:3000 \
-  ashgw/vault-mcp:latest
+  ashgw/vault-mcp
 ```
+
+This uses the pre-built image published at [ashgw/vault-mcp](https://hub.docker.com/repository/docker/ashgw/vault-mcp).
+
+---
 
 ### Environment Variables
 
+These are required to run the MCP Vault server:
+
 - `VAULT_ADDR`: Your HashiCorp Vault server address
-- `VAULT_TOKEN`: Valid Vault token with appropriate permissions
-- `MCP_PORT`: Port for the MCP server (default: 3000)
+- `VAULT_TOKEN`: A valid Vault token with read/write permissions
+- `MCP_PORT`: Optional. Defaults to 3000. Not required for Cursor.
+
+---
 
 ## Features in Detail
 
@@ -112,8 +82,7 @@ docker run -d \
 
 Creates or updates a secret at specified path.
 
-```typescript
-// Example usage
+```ts
 await tool("secret/create", {
   path: "apps/myapp/config",
   data: {
@@ -127,7 +96,7 @@ await tool("secret/create", {
 
 Retrieves a secret from specified path.
 
-```typescript
+```ts
 await tool("secret/read", {
   path: "apps/myapp/config",
 });
@@ -137,11 +106,13 @@ await tool("secret/read", {
 
 Soft-deletes a secret (versioned delete in KV v2).
 
-```typescript
+```ts
 await tool("secret/delete", {
   path: "apps/myapp/config",
 });
 ```
+
+---
 
 ### Policy Management
 
@@ -149,7 +120,7 @@ await tool("secret/delete", {
 
 Creates a new Vault policy with specified permissions.
 
-```typescript
+```ts
 await tool("policy/create", {
   name: "app-readonly",
   policy: `
@@ -160,19 +131,17 @@ await tool("policy/create", {
 });
 ```
 
+---
+
 ### Resources
 
 #### `vault://secrets`
 
 Lists all available secret paths in the KV store.
 
-```typescript
+```json
 {
-  "keys": [
-    "apps/",
-    "databases/",
-    "certificates/"
-  ]
+  "keys": ["apps/", "databases/", "certificates/"]
 }
 ```
 
@@ -180,15 +149,13 @@ Lists all available secret paths in the KV store.
 
 Lists all available Vault policies.
 
-```typescript
+```json
 {
-  "policies": [
-    "default",
-    "app-readonly",
-    "admin"
-  ]
+  "policies": ["default", "app-readonly", "admin"]
 }
 ```
+
+---
 
 ### Prompts
 
@@ -196,12 +163,16 @@ Lists all available Vault policies.
 
 Generates a Vault policy from path and capabilities.
 
-```typescript
+```ts
 await prompt("generate-policy", {
   path: "secret/data/apps/*",
-  capabilities: "read,list"
+  capabilities: "read,list",
 });
+```
 
+Returns:
+
+```json
 {
   "path": {
     "secret/data/apps/*": {
@@ -210,6 +181,8 @@ await prompt("generate-policy", {
   }
 }
 ```
+
+---
 
 ## License
 
