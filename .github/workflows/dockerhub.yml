@@ -46,6 +46,8 @@ jobs:
   docker-push:
     if: github.event_name == 'push'
     needs: [fmt, lint]
+    environment: deploy
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
