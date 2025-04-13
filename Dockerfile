@@ -22,5 +22,5 @@ RUN bun install --production
 ENV NODE_ENV=production
 ENV MCP_PORT=3000
 
-ENTRYPOINT ["bun", "dist/index.js"]
+ENTRYPOINT ["bun", "src/index.ts"]
   

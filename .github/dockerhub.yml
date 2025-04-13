@@ -18,7 +18,7 @@ permissions:
 
 env:
   SHA: ${{ github.sha }}
-
+  DOCKERHUB_USERNAME: ashgw
 jobs:
   fmt:
     runs-on: ubuntu-latest
@@ -39,8 +39,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
       - name: Building & tagging
-        run: docker build -t ashgw/vault-mcp:${{ env.SHA }} .
+        run: docker build -t ${{ env.DOCKERHUB_USERNAME }}/vault-mcp:${{ env.SHA }} .
       - name: Login
-        run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+        run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ env.DOCKERHUB_USERNAME }} --password-stdin
       - name: Pushing to the hub
-        run: docker push ashgw/vault-mcp:${{ env.SHA }}
+        run: docker push ${{ env.DOCKERHUB_USERNAME }}/vault-mcp:${{ env.SHA }}
