@@ -17,7 +17,6 @@ permissions:
   contents: write
 
 env:
-  SHA: ${{ github.sha }}
   DOCKERHUB_USERNAME: ashgw
 
 jobs:
@@ -52,9 +51,15 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+
+      - name: Set DATE_TAG
+        run: echo "DATE_TAG=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
+
       - name: Building & tagging
-        run: docker build -t ${{ env.DOCKERHUB_USERNAME }}/vault-mcp:${{ env.SHA }} .
+        run: docker build -t ${{ env.DOCKERHUB_USERNAME }}/vault-mcp:${{ env.DATE_TAG }} .
+
       - name: Login
         run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ env.DOCKERHUB_USERNAME }} --password-stdin
+
       - name: Pushing to the hub
-        run: docker push ${{ env.DOCKERHUB_USERNAME }}/vault-mcp:${{ env.SHA }}
+        run: docker push ${{ env.DOCKERHUB_USERNAME }}/vault-mcp:${{ env.DATE_TAG }}
