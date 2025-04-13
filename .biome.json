@@ -1,0 +1,18 @@
+{
+  "organizeImports": true,
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "style": {
+        "noUnusedVariables": "error"
+      }
+    }
+  }
+}
