@@ -1,0 +1,46 @@
+name: Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+    types:
+      - opened
+      - synchronize
+
+permissions:
+  contents: write
+
+env:
+  SHA: ${{ github.sha }}
+
+jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+      - name: Install deps
+        run: bun install
+      - name: Run formatter
+        run: bun run format
+
+  docker-push:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    needs: run-tests-2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Building & tagging
+        run: docker build -t ashgw/vault-mcp:${{ env.SHA }} .
+      - name: Login
+        run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+      - name: Pushing to the hub
+        run: docker push ashgw/vault-mcp:${{ env.SHA }}
