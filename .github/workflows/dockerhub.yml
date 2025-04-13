@@ -55,11 +55,16 @@ jobs:
       - name: Set DATE_TAG
         run: echo "DATE_TAG=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
 
-      - name: Building & tagging
-        run: docker build -t ${{ env.DOCKERHUB_USERNAME }}/vault-mcp:${{ env.DATE_TAG }} .
+      - name: Build & tag image
+        run: |
+          docker build -t ${{ env.DOCKERHUB_USERNAME }}/vault-mcp:${{ env.DATE_TAG }} .
+          docker tag ${{ env.DOCKERHUB_USERNAME }}/vault-mcp:${{ env.DATE_TAG }} ${{ env.DOCKERHUB_USERNAME }}/vault-mcp:latest
 
-      - name: Login
+      - name: Login to DockerHub
         run: echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ env.DOCKERHUB_USERNAME }} --password-stdin
 
-      - name: Pushing to the hub
+      - name: Push date-tagged image
         run: docker push ${{ env.DOCKERHUB_USERNAME }}/vault-mcp:${{ env.DATE_TAG }}
+
+      - name: Push latest tag
+        run: docker push ${{ env.DOCKERHUB_USERNAME }}/vault-mcp:latest

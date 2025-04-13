@@ -45,6 +45,8 @@ Once added, you can use prompts like:
 
 Cursor will route that request through the MCP server automatically.
 
+Check if it works, it should be green
+
 ---
 
 ### Docker (manual)
