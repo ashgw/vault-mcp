@@ -334,7 +334,6 @@ async function main() {
   }
 }
 
-// Auto-start if this is the main module
 if (import.meta.url === new URL(import.meta.resolve("./index.ts")).href) {
   main();
 }
