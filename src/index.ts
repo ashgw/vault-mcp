@@ -111,7 +111,7 @@ class VaultMcpServer {
             },
           ],
         };
-      },
+      }
     );
 
     // Read a KV secret (raw vault response)
@@ -130,7 +130,7 @@ class VaultMcpServer {
             },
           ],
         };
-      },
+      }
     );
 
     // Soft-deletes a secret (versioned delete at KV v2 path)
@@ -149,7 +149,7 @@ class VaultMcpServer {
             },
           ],
         };
-      },
+      }
     );
 
     // Vault policy writer (policy = raw string, passed directly)
@@ -169,7 +169,7 @@ class VaultMcpServer {
             },
           ],
         };
-      },
+      }
     );
   }
 
@@ -260,7 +260,7 @@ class VaultMcpServer {
             },
           ],
         };
-      },
+      }
     );
   }
 
@@ -319,7 +319,7 @@ async function main() {
 
   if (!vaultAddr || !vaultToken) {
     console.error(
-      "Error: VAULT_ADDR and VAULT_TOKEN environment variables are required",
+      "Error: VAULT_ADDR and VAULT_TOKEN environment variables are required"
     );
     process.exit(1);
   }
