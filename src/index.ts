@@ -311,9 +311,6 @@ export default VaultMcpServer;
  */
 
 async function main() {
-  console.error("Starting Vault MCP Server...");
-
-  // Load environment variables
   const vaultAddr = process.env.VAULT_ADDR;
   const vaultToken = process.env.VAULT_TOKEN;
 
@@ -326,8 +323,7 @@ async function main() {
 
   try {
     const server = new VaultMcpServer(vaultAddr, vaultToken);
-    console.error(`Connecting to Vault at: ${vaultAddr}`);
-    await server.start();
+    await server.start(); // for a bug in cursor
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);
