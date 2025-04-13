@@ -32,12 +32,14 @@ Add this to your Cursor MCP configuration:
         "VAULT_ADDR=https://your-vault-server:8200",
         "-e",
         "VAULT_TOKEN=hvs.your-vault-token",
-        "ashgw/vault-mcp"
+        "ashgw/vault-mcp:latest"
       ]
     }
   }
 }
 ```
+
+> If you prefer pinning to a specific docker image build (e.g. 20250413-165732), use that tag instead of latest. Browse available versions on [Docker Hub](https://hub.docker.com/r/ashgw/vault-mcp/tags).
 
 Once added, you can use prompts like:
 
@@ -51,7 +53,7 @@ Check if it works, it should be green
 
 ### Docker (manual)
 
-If you're running Vault MCP manually via Docker:
+You can run Vault MCP manually via Docker:
 
 ```bash
 docker run -d \
@@ -65,6 +67,20 @@ docker run -d \
 This uses the pre-built image published at [ashgw/vault-mcp](https://hub.docker.com/repository/docker/ashgw/vault-mcp).
 
 ---
+
+### Repo
+
+Clone the repository and `cd` into it, then build with
+
+```
+docker build -t vault-mcp .
+```
+
+Then run with
+
+```
+docker run --rm -e VAULT_ADDR=localhost:8200 -e VAULT_TOKEN=hsv.yourtoken vault-mcp
+```
 
 ### Environment Variables
 

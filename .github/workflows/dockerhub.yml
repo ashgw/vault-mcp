@@ -45,7 +45,7 @@ jobs:
   docker-push:
     if: github.event_name == 'push'
     needs: [fmt, lint]
-    environment: deploy
+    environment: Docker Hub Deployment
     timeout-minutes: 10
     runs-on: ubuntu-latest
     steps:
