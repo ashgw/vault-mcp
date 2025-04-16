@@ -20,9 +20,10 @@
     "lint": "biome check .."
   },
   "dependencies": {
+    "@ashgw/ts-env": "^1.5.3",
     "@modelcontextprotocol/sdk": "^1.9.0",
-    "node-vault": "^0.10.2",
-    "dotenv": "^16.0.0"
+    "dotenv": "^16.0.0",
+    "node-vault": "^0.10.2"
   },
   "devDependencies": {
     "biome": "^0.3.3",

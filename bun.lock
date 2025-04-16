@@ -4,6 +4,7 @@
     "": {
       "name": "hashicorp-vault-mcp",
       "dependencies": {
+        "@ashgw/ts-env": "^1.5.3",
         "@modelcontextprotocol/sdk": "^1.9.0",
         "dotenv": "^16.0.0",
         "node-vault": "^0.10.2",
@@ -17,6 +18,8 @@
     },
   },
   "packages": {
+    "@ashgw/ts-env": ["@ashgw/ts-env@1.5.3", "", { "peerDependencies": { "zod": ">=3.0.0" } }, "sha512-hRv+CYbfipl6rnJGy394Lq8L7CEQXsXpBJNQ18a6KhT8s6P5gXPtRwdKOcntFBFlVXl/7I3aQVARFWTtoyPmiQ=="],
+
     "@cspotcode/source-map-support": ["@cspotcode/source-map-support@0.8.1", "", { "dependencies": { "@jridgewell/trace-mapping": "0.3.9" } }, "sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw=="],
 
     "@jridgewell/resolve-uri": ["@jridgewell/resolve-uri@3.1.2", "", {}, "sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw=="],

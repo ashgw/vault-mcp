@@ -7,30 +7,11 @@
  * @module VaultMcpServer
  */
 
-import vault from "node-vault"; // Import the Node Vault client for interacting with HashiCorp Vault
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"; // Import the MCP server to expose our tools to LLMs
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"; // Import a transport to communicate via stdio
-import { z } from "zod"; // Import Zod for schema validation
-
-/**
- * Define a Zod schema for configuration.
- *
- * This schema validates the Vault configuration to ensure:
- * - VAULT_ADDR is a valid URL
- * - VAULT_TOKEN has at least 3 characters and starts with "hsv."
- * - MCP_PORT is an optional valid number within port range (defaults to 3000 if omitted)
- */
-const VaultConfigSchema = z.object({
-  VAULT_ADDR: z.string().url({
-    message:
-      "VAULT_ADDR must be a valid URL (e.g., http://vault.example.com:8200)",
-  }),
-  VAULT_TOKEN: z.string().min(3).startsWith("hsv.", {
-    message:
-      "VAULT_TOKEN must start with 'hsv.' prefix for HashiCorp Vault tokens",
-  }),
-  MCP_PORT: z.coerce.number().int().min(1).max(65535).optional().default(3000),
-});
+import vault from "node-vault";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { z } from "zod";
+import { createEnv } from "@ashgw/ts-env/";
 
 /**
  * VaultMcpServer class
@@ -51,7 +32,6 @@ const VaultConfigSchema = z.object({
 class VaultMcpServer {
   private server: McpServer; // MCP server instance to register tools and resources
   private vaultClient: any; // Node-Vault client for interacting with Vault's API
-  private config: z.infer<typeof VaultConfigSchema>; // Parsed configuration from environment variables
 
   /**
    * Constructor for VaultMcpServer
@@ -66,24 +46,6 @@ class VaultMcpServer {
    * @param vaultToken - The authentication token for Vault access (must start with "hsv.")
    */
   constructor(vaultAddress: string, vaultToken: string) {
-    // Validate and parse the configuration using Zod schema
-    try {
-      this.config = VaultConfigSchema.parse({
-        VAULT_ADDR: vaultAddress,
-        VAULT_TOKEN: vaultToken,
-        MCP_PORT: process.env.MCP_PORT,
-      });
-    } catch (error) {
-      // If a validation error occurs, print each issue and throw an error
-      if (error instanceof z.ZodError) {
-        const issues = error.issues
-          .map((issue) => `- ${issue.path}: ${issue.message}`)
-          .join("\n");
-        throw new Error(`Invalid Vault configuration:\n${issues}`);
-      }
-      throw error;
-    }
-
     // Initialize the MCP server with metadata
     this.server = new McpServer({
       name: "vault-mcp",
@@ -93,8 +55,8 @@ class VaultMcpServer {
 
     // Initialize the Vault client using the endpoint and token from the configuration
     this.vaultClient = vault({
-      endpoint: this.config.VAULT_ADDR,
-      token: this.config.VAULT_TOKEN,
+      endpoint: vaultAddress,
+      token: vaultToken,
     });
 
     // Register the available tools, resources, and prompts with the MCP server
@@ -137,7 +99,7 @@ class VaultMcpServer {
   private registerTools() {
     // Register the tool "secret/create" to write secrets to Vault
     this.server.tool(
-      "secret/create",
+      "create_secret",
       {
         path: z.string(), // "path" is a string representing the secret's storage path
         data: z.record(z.any()), // "data" is an object containing the secret key-value pairs
@@ -161,7 +123,7 @@ class VaultMcpServer {
 
     // Register the tool "secret/read" to fetch secrets from Vault
     this.server.tool(
-      "secret/read",
+      "read_secret",
       {
         path: z.string(), // Expect a "path" string input
       },
@@ -182,7 +144,7 @@ class VaultMcpServer {
 
     // Register the tool "secret/delete" to perform a soft-delete of a secret in Vault
     this.server.tool(
-      "secret/delete",
+      "delete_secret",
       {
         path: z.string(), // Expect a "path" input to identify the secret to delete
       },
@@ -203,7 +165,7 @@ class VaultMcpServer {
 
     // Register the tool "policy/create" to write a new policy to Vault
     this.server.tool(
-      "policy/create",
+      "create_policy",
       {
         name: z.string(), // "name" is a string for the policy's name
         policy: z.string(), // "policy" is a raw string representing the policy configuration
@@ -380,20 +342,28 @@ export default VaultMcpServer;
 
 async function main() {
   // Retrieve Vault address and token from environment variables
-  const vaultAddr = process.env.VAULT_ADDR;
-  const vaultToken = process.env.VAULT_TOKEN;
-
-  // Ensure that the necessary environment variables are provided
-  if (!vaultAddr || !vaultToken) {
-    console.error(
-      "Error: VAULT_ADDR and VAULT_TOKEN environment variables are required"
-    );
-    process.exit(1);
-  }
+  const env = createEnv({
+    vars: {
+      VAULT_ADDR: z.string().url({
+        message:
+          "VAULT_ADDR must be a valid URL (e.g., http://vault.example.com:8200)",
+      }),
+      VAULT_TOKEN: z.string().min(3).startsWith("hsv.", {
+        message:
+          "VAULT_TOKEN must start with 'hsv.' prefix for HashiCorp Vault tokens",
+      }),
+      MCP_PORT: z.coerce
+        .number()
+        .int()
+        .min(1)
+        .max(65535)
+        .optional()
+        .default(3000),
+    },
+  });
 
   try {
-    // Instantiate the VaultMcpServer with the provided Vault address and token
-    const server = new VaultMcpServer(vaultAddr, vaultToken);
+    const server = new VaultMcpServer(env.VAULT_ADDR, env.VAULT_TOKEN);
     // Start the MCP server (this will connect using stdio transport)
     await server.start(); // NOTE: This is done to address a bug in Cursor
   } catch (error) {
