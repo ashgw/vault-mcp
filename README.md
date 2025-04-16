@@ -1,4 +1,5 @@
 # HashiCorp Vault MCP Server
+[![smithery badge](https://smithery.ai/badge/@ashgw/vault-mcp)](https://smithery.ai/server/@ashgw/vault-mcp)
 
 A Model Context Protocol (MCP) server implementation that provides a secure interface to HashiCorp Vault which enables LLMs and other MCP clients to interact with Vault's secret and policy management features.
 
@@ -14,6 +15,14 @@ This allows you to prompt an LLM to:
 ## Installation
 
 There are multiple ways to use this server depending on your setup.
+
+### Installing via Smithery
+
+To install vault-mcp for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@ashgw/vault-mcp):
+
+```bash
+npx -y @smithery/cli install @ashgw/vault-mcp --client claude
+```
 
 ### Cursor (recommended)
 

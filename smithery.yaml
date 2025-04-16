@@ -1,0 +1,39 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - vaultAddress
+      - vaultToken
+    properties:
+      vaultAddress:
+        type: string
+        description: The address for the HashiCorp Vault server, e.g.,
+          https://your-vault-server:8200
+      vaultToken:
+        type: string
+        description: A valid Vault token (must start with 'hsv.') with sufficient
+          permissions
+      port:
+        type: number
+        default: 3000
+        description: Optional MCP server port, defaults to 3000
+  commandFunction:
+    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
+    |-
+    (config) => ({
+      command: 'bun',
+      args: ['src/index.ts'],
+      env: {
+        VAULT_ADDR: config.vaultAddress,
+        VAULT_TOKEN: config.vaultToken,
+        MCP_PORT: String(config.port || 3000)
+      }
+    })
+  exampleConfig:
+    vaultAddress: https://your-vault-server:8200
+    vaultToken: hsv.exampletoken
+    port: 3000
