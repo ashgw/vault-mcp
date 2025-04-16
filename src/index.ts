@@ -11,7 +11,7 @@ import vault from "node-vault";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { createEnv } from "@ashgw/ts-env/";
+import { createEnv } from "@ashgw/ts-env/*";
 
 /**
  * VaultMcpServer class
@@ -70,7 +70,7 @@ class VaultMcpServer {
    *
    * Each tool is documented with its usage details below:
    *
-   * TOOL: secret/create
+   * TOOL: secret_create
    * - Description: Creates or updates a secret in the Vault KV store.
    * - Expected Input: JSON with "path" (string) and "data" (object containing key-value pairs)
    * - Example Call:
@@ -82,22 +82,22 @@ class VaultMcpServer {
    *     }
    *   }
    *
-   * TOOL: secret/read
+   * TOOL: secret_read
    * - Description: Reads a secret from the Vault KV store at the specified path.
    * - Expected Input: JSON with "path" (string)
    *
-   * TOOL: secret/delete
+   * TOOL: secret_delete
    * - Description: Soft-deletes a secret (versioned delete) at the specified path.
    * - Expected Input: JSON with "path" (string)
    *
-   * TOOL: policy/create
+   * TOOL: policy_create
    * - Description: Creates a new Vault policy.
    * - Expected Input: JSON with "name" (string) and "policy" (raw policy string)
    *
    * @private
    */
   private registerTools() {
-    // Register the tool "secret/create" to write secrets to Vault
+    // Register the tool "secret_create" to write secrets to Vault
     this.server.tool(
       "create_secret",
       {
@@ -121,7 +121,7 @@ class VaultMcpServer {
       }
     );
 
-    // Register the tool "secret/read" to fetch secrets from Vault
+    // Register the tool "secret_read" to fetch secrets from Vault
     this.server.tool(
       "read_secret",
       {
@@ -142,7 +142,7 @@ class VaultMcpServer {
       }
     );
 
-    // Register the tool "secret/delete" to perform a soft-delete of a secret in Vault
+    // Register the tool "secret_delete" to perform a soft-delete of a secret in Vault
     this.server.tool(
       "delete_secret",
       {
@@ -163,7 +163,7 @@ class VaultMcpServer {
       }
     );
 
-    // Register the tool "policy/create" to write a new policy to Vault
+    // Register the tool "policy_create" to write a new policy to Vault
     this.server.tool(
       "create_policy",
       {
@@ -201,8 +201,8 @@ class VaultMcpServer {
    * @private
    */
   private registerResources() {
-    // Register resource "vault-secrets" to list secret keys from Vault's metadata
-    this.server.resource("vault-secrets", "vault://secrets", async () => {
+    // Register resource "vault_secrets" to list secret keys from Vault's metadata
+    this.server.resource("vault_secrets", "vault://secrets", async () => {
       try {
         // Use Vault's list API to get metadata for secrets
         const result = await this.vaultClient.list("secret/metadata");
@@ -228,8 +228,8 @@ class VaultMcpServer {
       }
     });
 
-    // Register resource "vault-policies" to list current Vault policies
-    this.server.resource("vault-policies", "vault://policies", async () => {
+    // Register resource "vault_policies" to list current Vault policies
+    this.server.resource("vault_policies", "vault://policies", async () => {
       // Retrieve the list of policies using Vault's system method
       const result = await this.vaultClient.sys.listPolicies();
       return {
@@ -257,9 +257,9 @@ class VaultMcpServer {
    * @private
    */
   private registerPrompts() {
-    // Register prompt "generate-policy" to create a Vault policy from provided inputs
+    // Register prompt "generate_policy" to create a Vault policy from provided inputs
     this.server.prompt(
-      "generate-policy",
+      "generate_policy",
       {
         path: z.string(), // The path where the policy applies
         capabilities: z.string(), // Comma-separated capabilities, e.g., "read, list"
@@ -325,16 +325,16 @@ export default VaultMcpServer;
  *
  * Tool Usage Examples:
  * - Create a secret:
- *   await tool("secret/create", {
+ *   await tool("secret_create", {
  *     path: "my/secret",
  *     data: { key: "value" }
  *   });
  *
  * - Read a secret:
- *   await tool("secret/read", { path: "my/secret" });
+ *   await tool("secret_read", { path: "my/secret" });
  *
  * - Create a policy:
- *   await tool("policy/create", {
+ *   await tool("policy_create", {
  *     name: "read-only",
  *     policy: 'path "secret/*" { capabilities = ["read", "list"] }'
  *   });

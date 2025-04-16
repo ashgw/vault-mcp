@@ -49,8 +49,6 @@ Cursor will route that request through the MCP server automatically.
 
 Check if it works, it should be green
 
-![image](https://github.com/user-attachments/assets/91fa0811-5890-4506-bf54-19e0ba688d23)
-
 ---
 
 ### Docker (manual)
@@ -98,12 +96,12 @@ These are required to run the MCP Vault server:
 
 ### Secret Management Tools
 
-#### `secret/create`
+#### `secret_create`
 
 Creates or updates a secret at specified path.
 
 ```ts
-await tool("secret/create", {
+await tool("secret_create", {
   path: "apps/myapp/config",
   data: {
     apiKey: "secret-key-123",
@@ -112,22 +110,22 @@ await tool("secret/create", {
 });
 ```
 
-#### `secret/read`
+#### `secret_read`
 
 Retrieves a secret from specified path.
 
 ```ts
-await tool("secret/read", {
+await tool("secret_read", {
   path: "apps/myapp/config",
 });
 ```
 
-#### `secret/delete`
+#### `secret_delete`
 
 Soft-deletes a secret (versioned delete in KV v2).
 
 ```ts
-await tool("secret/delete", {
+await tool("secret_delete", {
   path: "apps/myapp/config",
 });
 ```
