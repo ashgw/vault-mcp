@@ -134,12 +134,12 @@ await tool("secret_delete", {
 
 ### Policy Management
 
-#### `policy/create`
+#### `policy_create`
 
 Creates a new Vault policy with specified permissions.
 
 ```ts
-await tool("policy/create", {
+await tool("policy_create", {
   name: "app-readonly",
   policy: `
     path "secret/data/apps/myapp/*" {
@@ -177,12 +177,12 @@ Lists all available Vault policies.
 
 ### Prompts
 
-#### `generate-policy`
+#### `generate_policy`
 
 Generates a Vault policy from path and capabilities.
 
 ```ts
-await prompt("generate-policy", {
+await prompt("generate_policy", {
   path: "secret/data/apps/*",
   capabilities: "read,list",
 });
