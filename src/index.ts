@@ -348,7 +348,7 @@ async function main() {
         message:
           "VAULT_ADDR must be a valid URL (e.g., http://vault.example.com:8200)",
       }),
-      VAULT_TOKEN: z.string().min(3).startsWith("hsv.", {
+      VAULT_TOKEN: z.string().min(3).startsWith("hvs.", {
         message:
           "VAULT_TOKEN must start with 'hsv.' prefix for HashiCorp Vault tokens",
       }),
